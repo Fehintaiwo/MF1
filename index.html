@@ -1113,48 +1113,6 @@ async function generateSketch() {
     }
   }
 
-  function classifyPixel(x, y) {
-    const isFront = x < HALF;
-
-    if (isFront) {
-      // Silhouette check with dilation to fill stripe texture gaps
-      if (!inSilhouette(x, y, 0, HALF)) return null;
-      // T-shirt: everything above y=120 → white
-      if (y < F_TSHIRT_Y1) return null;
-      // Straps: narrow columns flanking bib, from y=120 to y=210
-      if (y < 210 && x < F_STRAP_L_X1) return 'straps';
-      if (y < 210 && x > F_STRAP_R_X0) return 'straps';
-      // Bib: centre
-      if (y < F_WB_Y0) return 'bib';
-      // Waistband
-      if (y < F_WB_Y1) return 'waistband';
-      // Trousers — use vivid gold only for patches
-      const pi = (y*W+x)*4;
-      const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
-      const isVividGold = (pr-pb)>80 && pr>140 && pg>90 && pb<90;
-      if (isVividGold) return 'knee-patch';
-      return x < F_CENTRE ? 'left-trouser' : 'right-trouser';
-
-    } else {
-      if (!inSilhouette(x, y, HALF, W)) return null;
-      const lx = x - HALF;
-      // T-shirt / strap region y < 200
-      if (y < B_TSHIRT_Y1) {
-        const pi=(y*W+x)*4;
-        const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
-        return ((pr-pb)>70 && pr>120 && pg>80) ? 'straps' : null;
-      }
-      // Waistband
-      if (y < B_WB_Y1) return 'waistband';
-      // Back panels
-      const pi=(y*W+x)*4;
-      const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
-      const isVividGold=(pr-pb)>80 && pr>140 && pg>90 && pb<90;
-      if (lx > 120 && lx < 430) return 'back-mid';
-      return isVividGold ? 'back-knee' : 'back-sides';
-    }
-  }
-
   // ── STEP 3: OUTLINE DETECTION ─────────────────────────────────────────────
   // After we know the section for each pixel, detect edges between
   // different sections (or between garment and background) and draw them dark.
