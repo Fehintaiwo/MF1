@@ -25,17 +25,20 @@
   --radius:    3px;
   --mono:      'DM Mono', monospace;
   --serif:     'Cormorant Garamond', Georgia, serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html { font-size: 16px; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--mono);
   font-size: 0.8rem;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* ── Topbar ───────────────────────────────────────── */
@@ -43,39 +46,60 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  height: 56px;
+  padding: 0 1.25rem;
+  height: 52px;
   background: var(--ink);
   border-bottom: 1px solid #333;
   flex-shrink: 0;
+  z-index: 50;
 }
 
 .topbar-brand {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #F4F1EC;
   letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
-.topbar-brand span {
-  color: var(--accent);
-  font-style: italic;
-}
+.topbar-brand span { color: var(--accent); font-style: italic; }
 
 .topbar-meta {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: #777;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
+  display: none;
 }
 
-/* ── Layout ───────────────────────────────────────── */
+/* Mobile panel toggle button in topbar */
+.panel-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: var(--radius);
+  color: #ccc;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Desktop layout ───────────────────────────────── */
 .app-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 300px 1fr;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* ── Sidebar ──────────────────────────────────────── */
@@ -85,14 +109,17 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--rule); }
 
 .sidebar-section {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
 }
 
 .sidebar-section:last-child { border-bottom: none; }
@@ -102,7 +129,7 @@ body {
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -115,484 +142,433 @@ body {
   background: var(--rule);
 }
 
-.badge {
-  font-size: 0.52rem;
-  padding: 2px 6px;
-  border-radius: 20px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
+.badge { font-size: 0.52rem; padding: 2px 6px; border-radius: 20px; letter-spacing: 0.08em; text-transform: uppercase; }
 .badge-active { background: #FEF3CD; color: #7B5300; border: 1px solid #F0D070; }
 .badge-soon   { background: var(--cream); color: var(--muted); border: 1px solid var(--rule); }
 
 /* ── Fabric upload zones ──────────────────────────── */
-.fabric-slots {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+.fabric-slots { display: flex; flex-direction: column; gap: 0.65rem; }
 
 .fabric-slot {
   border: 1.5px dashed var(--rule);
   border-radius: var(--radius);
-  padding: 0.9rem;
+  padding: 0.8rem;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
   background: white;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .fabric-slot:hover { border-color: var(--accent); background: #FFFCF7; }
+.fabric-slot:active { background: #FFF8EE; }
 .fabric-slot.has-fabric { border-style: solid; border-color: var(--success); }
 
-.fabric-slot-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.5rem;
-}
+.fabric-slot-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; }
 
 .fabric-letter {
-  width: 24px;
-  height: 24px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 500;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 500; flex-shrink: 0;
 }
 
 .letter-a { background: var(--accent); color: white; }
 .letter-b { background: var(--accent2); color: white; }
 
-.fabric-slot-title {
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
+.fabric-slot-title  { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.fabric-slot-subtitle { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.06em; }
 
-.fabric-slot-subtitle {
-  font-size: 0.58rem;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-}
-
-.fabric-preview-wrap {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
+.fabric-preview-wrap { display: flex; gap: 0.5rem; align-items: center; }
 
 .fabric-preview {
-  width: 60px;
-  height: 45px;
-  border-radius: 2px;
-  object-fit: cover;
-  border: 1px solid var(--rule);
-  display: none;
+  width: 56px; height: 42px;
+  border-radius: 2px; object-fit: cover;
+  border: 1px solid var(--rule); display: none;
 }
-
 .fabric-preview.visible { display: block; }
 
-.fabric-filename {
-  font-size: 0.6rem;
-  color: var(--ink);
-  word-break: break-all;
-  line-height: 1.4;
-}
-
-.upload-hint {
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  text-align: center;
-  padding: 0.2rem 0;
-}
-
-.fabric-slot input[type="file"] {
-  display: none;
-}
+.fabric-filename { font-size: 0.6rem; color: var(--ink); word-break: break-all; line-height: 1.4; }
+.upload-hint { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; text-align: center; padding: 0.2rem 0; }
+.fabric-slot input[type="file"] { display: none; }
 
 /* ── Assign table ─────────────────────────────────── */
-.assign-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.65rem;
-}
+.assign-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
 
 .assign-table th {
-  text-align: left;
-  color: var(--muted);
-  letter-spacing: 0.15em;
-  font-size: 0.55rem;
-  text-transform: uppercase;
-  padding: 0 0.4rem 0.5rem;
-  font-weight: 400;
+  text-align: left; color: var(--muted);
+  letter-spacing: 0.15em; font-size: 0.55rem;
+  text-transform: uppercase; padding: 0 0.4rem 0.5rem; font-weight: 400;
 }
 
 .assign-table td {
-  padding: 0.3rem 0.4rem;
+  padding: 0.35rem 0.4rem;
   border-bottom: 1px solid var(--rule);
   vertical-align: middle;
 }
-
 .assign-table tr:last-child td { border-bottom: none; }
 
 .section-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 0.3rem;
-  vertical-align: middle;
-  flex-shrink: 0;
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; margin-right: 0.3rem;
+  vertical-align: middle; flex-shrink: 0;
 }
-
 .dot-a { background: var(--accent); }
 .dot-b { background: var(--accent2); }
 
-.fab-toggle {
-  display: flex;
-  gap: 3px;
-}
+.fab-toggle { display: flex; gap: 3px; }
 
 .fab-btn {
-  padding: 2px 8px;
+  padding: 4px 10px;
   border: 1px solid var(--rule);
-  border-radius: 2px;
-  background: white;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  cursor: pointer;
-  color: var(--muted);
+  border-radius: 2px; background: white;
+  font-family: var(--mono); font-size: 0.62rem;
+  cursor: pointer; color: var(--muted);
   transition: all 0.1s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 28px;
 }
-
 .fab-btn.active-a { background: var(--accent); color: white; border-color: var(--accent); }
 .fab-btn.active-b { background: var(--accent2); color: white; border-color: var(--accent2); }
 
 /* ── Blend controls ───────────────────────────────── */
-.blend-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
+.blend-controls { display: flex; flex-direction: column; gap: 0.6rem; }
 
-.control-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.control-row { display: flex; align-items: center; gap: 0.75rem; }
 
-.control-label {
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  width: 80px;
-  flex-shrink: 0;
-}
+.control-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; width: 75px; flex-shrink: 0; }
 
 .control-row input[type="range"] {
-  flex: 1;
-  accent-color: var(--accent);
-  height: 3px;
-  cursor: pointer;
+  flex: 1; accent-color: var(--accent);
+  height: 4px; cursor: pointer;
+  touch-action: manipulation;
 }
 
-.control-val {
-  font-size: 0.6rem;
-  color: var(--ink);
-  width: 28px;
-  text-align: right;
-}
+.control-val { font-size: 0.6rem; color: var(--ink); width: 28px; text-align: right; }
 
 /* ── Action buttons ───────────────────────────────── */
 .action-bar {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
   border-top: 1px solid var(--rule);
   background: var(--panel-bg);
-  position: sticky;
-  bottom: 0;
+  position: sticky; bottom: 0;
+  flex-shrink: 0;
 }
 
 .btn-primary {
-  width: 100%;
-  padding: 0.7rem;
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  border-radius: var(--radius);
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  width: 100%; padding: 0.8rem;
+  background: var(--ink); color: var(--paper);
+  border: none; border-radius: var(--radius);
+  font-family: var(--mono); font-size: 0.72rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.15s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
 }
-
 .btn-primary:hover { background: #222; }
 .btn-primary:active { transform: scale(0.98); }
 .btn-primary:disabled { background: var(--rule); color: var(--muted); cursor: not-allowed; }
 .btn-primary.generating { background: #444; }
 
 .btn-secondary {
-  width: 100%;
-  padding: 0.6rem;
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.15s;
+  width: 100%; padding: 0.7rem;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  font-family: var(--mono); font-size: 0.65rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
 }
-
 .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── Main canvas area ─────────────────────────────── */
 .canvas-area {
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   background: #EDEAE3;
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
+  min-width: 0;
 }
 
 .canvas-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 1rem;
   background: var(--panel-bg);
   border-bottom: 1px solid var(--rule);
-  flex-shrink: 0;
-  gap: 1rem;
+  flex-shrink: 0; gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .canvas-title {
-  font-family: var(--serif);
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--ink);
+  font-family: var(--serif); font-size: 1rem;
+  font-weight: 600; letter-spacing: 0.03em; color: var(--ink);
+  white-space: nowrap;
 }
-
 .canvas-title span { font-style: italic; color: var(--muted); font-weight: 400; }
 
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.toolbar-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 
 .icon-btn {
-  padding: 0.3rem 0.6rem;
-  background: white;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  color: var(--muted);
-  transition: all 0.15s;
+  padding: 0.35rem 0.65rem;
+  background: white; border: 1px solid var(--rule);
+  border-radius: var(--radius); font-family: var(--mono);
+  font-size: 0.62rem; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  color: var(--muted); transition: all 0.15s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  min-height: 36px; min-width: 36px;
 }
-
 .icon-btn:hover { border-color: var(--ink); color: var(--ink); }
 .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-.zoom-display {
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  padding: 0 0.5rem;
-}
+.zoom-display { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; padding: 0 0.3rem; }
 
 /* ── Preview container ────────────────────────────── */
 .preview-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  overflow: auto;
+  flex: 1; display: flex;
+  align-items: center; justify-content: center;
+  padding: 1.25rem; overflow: auto;
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 .preview-container::-webkit-scrollbar { width: 6px; height: 6px; }
 .preview-container::-webkit-scrollbar-thumb { background: #C0BBB3; border-radius: 3px; }
 
 .preview-wrapper {
-  position: relative;
-  box-shadow: var(--shadow-lg);
-  border-radius: 2px;
-  overflow: hidden;
-  transform-origin: center;
-  transition: transform 0.2s;
+  position: relative; box-shadow: var(--shadow-lg);
+  border-radius: 2px; overflow: hidden;
+  transform-origin: center; transition: transform 0.2s;
   background: white;
 }
 
-#mainCanvas {
-  display: block;
-  max-width: 100%;
-}
+#mainCanvas { display: block; max-width: 100%; }
 
-/* ── Empty / loading states ───────────────────────── */
+/* ── Empty state ─────────────────────────────────── */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  text-align: center;
-  padding: 3rem;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.9rem; text-align: center; padding: 2rem;
 }
+.empty-icon { font-size: 2.5rem; opacity: 0.3; }
+.empty-title { font-family: var(--serif); font-size: 1.3rem; color: var(--ink); opacity: 0.5; }
+.empty-sub { font-size: 0.65rem; color: var(--muted); line-height: 1.7; max-width: 260px; }
 
-.empty-icon {
-  font-size: 3rem;
-  opacity: 0.3;
-}
-
-.empty-title {
-  font-family: var(--serif);
-  font-size: 1.4rem;
-  color: var(--ink);
-  opacity: 0.5;
-}
-
-.empty-sub {
-  font-size: 0.65rem;
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 260px;
-}
-
+/* ── Progress overlay ─────────────────────────────── */
 .progress-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(244,241,236,0.85);
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  z-index: 10;
-  backdrop-filter: blur(2px);
+  position: absolute; inset: 0;
+  background: rgba(244,241,236,0.88);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem; z-index: 10; backdrop-filter: blur(2px);
 }
-
 .progress-overlay.visible { display: flex; }
-
-.progress-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-.progress-bar-wrap {
-  width: 200px;
-  height: 3px;
-  background: var(--rule);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  width: 0%;
-  transition: width 0.1s;
-}
+.progress-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
+.progress-bar-wrap { width: 180px; height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.1s; }
 
 /* ── Status bar ───────────────────────────────────── */
 .statusbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 1.5rem;
-  background: var(--ink);
-  font-size: 0.58rem;
-  color: #888;
-  letter-spacing: 0.1em;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.4rem 1rem;
+  background: var(--ink); font-size: 0.58rem;
+  color: #888; letter-spacing: 0.08em; flex-shrink: 0;
 }
-
 .status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #555;
-  display: inline-block;
-  margin-right: 0.4rem;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #555; display: inline-block; margin-right: 0.4rem;
 }
-
-.status-dot.ready { background: #4CAF50; }
+.status-dot.ready  { background: #4CAF50; }
 .status-dot.working { background: var(--accent); animation: pulse 1s infinite; }
 
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
-/* ── Tooltip ──────────────────────────────────────── */
+/* ── Tooltip (desktop only) ──────────────────────── */
 .tooltip-wrap { position: relative; }
 .tooltip-wrap:hover .tooltip { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .tooltip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: var(--ink);
-  color: #ddd;
-  font-size: 0.58rem;
-  padding: 4px 8px;
-  border-radius: 2px;
-  white-space: nowrap;
-  opacity: 0;
+  background: var(--ink); color: #ddd;
+  font-size: 0.58rem; padding: 4px 8px; border-radius: 2px;
+  white-space: nowrap; opacity: 0;
   transition: opacity 0.15s, transform 0.15s;
-  pointer-events: none;
-  letter-spacing: 0.05em;
-  z-index: 100;
+  pointer-events: none; letter-spacing: 0.05em; z-index: 100;
 }
 
-/* ── Notification toast ───────────────────────────── */
+/* ── Toast ────────────────────────────────────────── */
 .toast {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background: var(--ink);
-  color: var(--paper);
-  padding: 0.6rem 1rem;
-  border-radius: var(--radius);
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  transform: translateY(80px);
-  opacity: 0;
+  position: fixed; bottom: 1.5rem; right: 1rem;
+  background: var(--ink); color: var(--paper);
+  padding: 0.65rem 1rem; border-radius: var(--radius);
+  font-size: 0.65rem; letter-spacing: 0.08em;
+  transform: translateY(80px); opacity: 0;
   transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 1000;
-  border-left: 3px solid var(--accent);
+  z-index: 2000; border-left: 3px solid var(--accent);
+  max-width: calc(100vw - 2rem);
 }
-
 .toast.show { transform: translateY(0); opacity: 1; }
 
-/* ── Hidden canvases for processing ──────────────────── */
+/* ── Hidden canvases ─────────────────────────────── */
 #offscreen, #fabricACanvas, #fabricBCanvas { display: none; }
-
-/* ── Scrollbar ─────────────────────────────────────── */
 .sidebar::-webkit-scrollbar-track { background: transparent; }
+
+/* ══════════════════════════════════════════════════
+   MOBILE STYLES  ≤ 768px
+   ══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  body { overflow: hidden; }
+
+  /* Topbar: hide meta, show panel toggle */
+  .topbar { padding: 0 1rem; height: 50px; }
+  .topbar-meta { display: none; }
+  .panel-toggle-btn { display: flex; }
+
+  /* Stack layout: canvas on top, panel slides up from bottom */
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    height: calc(100dvh - 50px);
+    position: relative;
+  }
+
+  /* Canvas area fills all available space */
+  .canvas-area {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .canvas-toolbar {
+    padding: 0.4rem 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .canvas-title { font-size: 0.9rem; }
+
+  .icon-btn {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.58rem;
+    min-height: 38px;
+  }
+
+  .zoom-display { display: none; }
+
+  .preview-container { padding: 0.75rem; }
+
+  /* ── Bottom sheet panel ─────────────────────────── */
+  .sidebar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 75vh;
+    max-height: 75vh;
+    border-right: none;
+    border-top: 2px solid var(--rule);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+    z-index: 500;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    padding-bottom: calc(1rem + var(--safe-bottom));
+    will-change: transform;
+  }
+
+  .sidebar.panel-open {
+    transform: translateY(0);
+  }
+
+  /* Drag handle at top of sheet */
+  .sidebar::before {
+    content: '';
+    display: block;
+    width: 40px; height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    margin: 10px auto 4px;
+    flex-shrink: 0;
+  }
+
+  /* Backdrop */
+  .sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 499;
+    transition: opacity 0.3s;
+  }
+  .sheet-backdrop.visible { display: block; }
+
+  /* Action bar inside sheet on mobile */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: calc(0.75rem + var(--safe-bottom));
+    background: var(--panel-bg);
+  }
+
+  /* Fabric slots side-by-side on mobile */
+  .fabric-slots {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .fabric-slot { flex: 1; padding: 0.7rem 0.6rem; }
+
+  .fabric-slot-header { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+
+  .fabric-slot-subtitle { display: none; }
+
+  /* Bigger toggle buttons for touch */
+  .fab-btn {
+    padding: 6px 12px;
+    font-size: 0.68rem;
+    min-height: 36px;
+  }
+
+  /* Status bar compact */
+  .statusbar { padding: 0.35rem 0.75rem; }
+  #statusRight { display: none; }
+
+  /* Toast position above action bar */
+  .toast { bottom: 1rem; right: 0.75rem; left: 0.75rem; right: 0.75rem; text-align: center; }
+
+  /* Topbar brand smaller on tiny screens */
+  .topbar-brand { font-size: 1.1rem; }
+
+  /* Range input taller touch target */
+  .control-row input[type="range"] { height: 20px; }
+
+  /* Generate button larger */
+  .btn-primary { min-height: 48px; font-size: 0.75rem; }
+  .btn-secondary { min-height: 44px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .topbar-brand { font-size: 1rem; }
+  .panel-toggle-btn { font-size: 0.56rem; padding: 0.35rem 0.55rem; }
+  .sidebar { height: 82vh; max-height: 82vh; }
+}
+
+/* Tablets 769-1024 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .app-layout { grid-template-columns: 270px 1fr; }
+  .topbar-meta { display: block; font-size: 0.58rem; }
+}
+
+/* Desktop: show topbar meta */
+@media (min-width: 769px) {
+  .topbar-meta { display: block; }
+  .sheet-backdrop { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -601,12 +577,16 @@ body {
 <header class="topbar">
   <div class="topbar-brand">Fabric <span>Sketch</span> Studio</div>
   <div class="topbar-meta">Flat Sketch Generator — v1.0</div>
+  <button class="panel-toggle-btn" id="panelToggleBtn" onclick="togglePanel()" aria-label="Open settings panel">
+    ⚙ Settings
+  </button>
 </header>
 
 <div class="app-layout">
 
   <!-- ── Sidebar ─────────────────────────────────── -->
-  <aside class="sidebar">
+  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closePanel()"></div>
+  <aside class="sidebar" id="sidebar">
 
     <!-- Garment Identity -->
     <div class="sidebar-section" style="background:var(--ink);border-bottom:1px solid #333">
@@ -956,16 +936,15 @@ async function generateSketch() {
   document.getElementById('generateBtn').disabled = true;
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('previewWrapper').style.display = 'block';
-  const overlay = document.getElementById('progressOverlay');
-  overlay.classList.add('visible');
+  document.getElementById('progressOverlay').classList.add('visible');
   await sleep(30);
 
   const garment = state.garmentImg;
   const W = garment.naturalWidth;   // 1536
   const H = garment.naturalHeight;  // 1024
-  const HALF = Math.floor(W / 2);   // 768  — front left, back right
+  const HALF = Math.floor(W / 2);   // 768
 
-  // Draw garment to offscreen canvas to read pixels
+  // Read original pixels
   const canvas = document.getElementById('mainCanvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -975,180 +954,238 @@ async function generateSketch() {
   offCtx.drawImage(garment, 0, 0);
   const orig = offCtx.getImageData(0, 0, W, H).data;
 
+  // Fabric tiles
   const scale = parseInt(document.getElementById('fabricScale').value) / 100;
-  const tileA = makeFabricTile(state.fabricA, W, H, scale);
-  const tileB = makeFabricTile(state.fabricB, W, H, scale);
+  const tileA = makeFabricTile(state.fabricA, W, H, scale).data;
+  const tileB = makeFabricTile(state.fabricB, W, H, scale).data;
 
-  // ── PIXEL CLASSIFIER ────────────────────────────────────────────────────
-  // The original flat sketch uses:
-  //   GOLD / WARM pixels  → garment fabric panels (Zone A originally)
-  //   DARK / BLACK pixels → either stripe panels OR the t-shirt underneath
+  // ── STEP 1 & 2: REGION CLASSIFIER WITH DILATION ──────────────────────────
+  // We skip the isGarment prepass — instead classifyPixel uses a local
+  // dilation (radius=3) to fill in stripe gaps from the original template.
+  // Classify each garment pixel into a named section using PURE GEOMETRY.
+  // No pixel-colour decisions for section assignment.
+  // Coordinates are normalised within each view half (rx, ry = 0..1).
   //
-  // We identify the t-shirt region by GEOMETRY only:
-  //   Front: the black areas above/beside the bib that are NOT straps
-  //   Back:  the entire black torso area behind the cross-straps
+  // FRONT VIEW (x: 0..HALF)
+  //   Actual garment spans x≈321-702, y≈30-1010
+  //   T-shirt zone: y<120 (full dark band) + narrow side columns y=120-200
+  //   Straps:       y=45-200, left col x=325-400, right col x=615-690
+  //   Bib:          y=120-305, centre x=400-615
+  //   Waistband:    y=305-345
+  //   Left trouser: y>345, x<510
+  //   Right trouser:y>345, x>=510
+  //   Patches are sub-regions of trousers (gold patches on trouser panels)
   //
-  // Everything else that is gold → GOLD zone
-  // Everything else that is dark → DARK zone
+  // BACK VIEW (x: HALF..W)
+  //   T-shirt:      y<200 (upper back, not the cross straps which are gold)
+  //   Cross straps: gold pixels at y<250 (detected by colour since geometry overlaps)
+  //   Back-mid:     y>200, centre x≈880-1130
+  //   Back-sides:   y>200, x<880 or x>1130
+
+  // ── PRECISE GEOMETRY (measured from pixel analysis) ─────────────────────
+  // FRONT (image left half, x: 0..HALF)
+  //   Strap left:  y=30-195, x roughly lerps from 434→400 then bib edge
+  //   Strap right: y=30-195, x roughly lerps from 573→620 then bib edge
+  //   Bib:         y=195-305, x=395-625 (square chest panel)
+  //   Waistband:   y=305-350
+  //   Trousers:    y=350+, split at x=510
   //
-  // Then at render time we look up SECTIONS[].fab for each named region
-  // so the toggle assignments are always respected.
+  // BACK (image right half, x: HALF..W)
+  //   Cross-straps: gold pixels y<215 (detected by colour)
+  //   Bib-back:     y=195-305, full width (back yoke)
+  //   Waistband:    y=305-350
+  //   Back-mid:     y=350+, lx=87-253 (left leg) and lx=257-445 (right leg) centre zone
+  //   Back-sides:   y=350+, outer edges
 
-  // ── ZONE CONSTANTS ───────────────────────────────────────────────────────
-  const Z_BG      = 0;  // white background → white
-  const Z_TSHIRT  = 1;  // t-shirt body     → white (removed)
-  const Z_GOLD    = 2;  // warm/gold pixel  → lookup fabric by section
-  const Z_DARK    = 3;  // dark/stripe px   → lookup fabric by section
-  const Z_OUTLINE = 4;  // seam edge        → dark line
+  const F_STRAP_L_X0 = 402, F_STRAP_L_X1 = 469;  // left strap x at y≈40
+  const F_STRAP_R_X0 = 539, F_STRAP_R_X1 = 622;  // right strap x at y≈40
+  const F_BIB_X0 = 395,  F_BIB_X1 = 625;          // bib x bounds
+  const F_BIB_Y0 = 195,  F_BIB_Y1 = 305;          // bib y bounds
+  const F_WB_Y0  = 305,  F_WB_Y1  = 350;          // waistband y bounds
+  const F_CENTRE = 510;                             // trouser L/R split
 
-  const zoneMap = new Uint8Array(W * H);
+  const B_TSHIRT_Y1 = 215;   // t-shirt clears by y=215 on back
+  const B_BIB_Y1    = 305;   // back yoke ends
+  const B_WB_Y1     = 350;   // waistband ends
+  const B_CENTRE    = 253;   // back trouser split (lx units)
 
-  // ── T-SHIRT GEOMETRY ────────────────────────────────────────────────────
-  // The pinafore sits OVER the t-shirt. The t-shirt is visible:
-  //   Front: neck area (top centre), left sleeve, right sleeve
-  //   Back:  entire upper back body between the cross straps
-  //
-  // We mark any DARK pixel inside these geometry boxes as TSHIRT.
-  // Gold pixels are never t-shirt (they are bib/straps/waistband).
-
-  function isTshirtRegion(x, y) {
-    if (x < HALF) {
-      // Front — relative coords within left half
-      const rx = x / HALF;          // 0..1
-      const ry = y / H;             // 0..1
-      // Neck / collar strip across the top centre
-      if (ry < 0.14 && rx > 0.20 && rx < 0.80) return true;
-      // Left sleeve (viewer's right of image)
-      if (ry > 0.04 && ry < 0.30 && rx > 0.14 && rx < 0.38) return true;
-      // Right sleeve (viewer's left of image)
-      if (ry > 0.04 && ry < 0.30 && rx > 0.60 && rx < 0.80) return true;
-    } else {
-      // Back — relative coords within right half
-      const rx = (x - HALF) / HALF;
-      const ry = y / H;
-      // Entire upper back is t-shirt; straps are gold so won't match DARK
-      if (ry < 0.30 && rx > 0.10 && rx < 0.90) return true;
+  // Dilation-based silhouette: fills stripe texture gaps (radius 3px)
+  function inSilhouette(x, y, xMin, xMax) {
+    for (let dy = -3; dy <= 3; dy++) {
+      for (let dx = -3; dx <= 3; dx++) {
+        const ny = y+dy, nx = x+dx;
+        if (ny<0||ny>=H||nx<xMin||nx>=xMax) continue;
+        const ni=(ny*W+nx)*4;
+        if (orig[ni]<233||orig[ni+1]<233||orig[ni+2]<233) return true;
+      }
     }
     return false;
   }
 
-  // ── PASS 1: classify every pixel ────────────────────────────────────────
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      const r = orig[i], g = orig[i+1], b = orig[i+2];
-
-      // White / near-white background
-      if (r > 232 && g > 232 && b > 232) { zoneMap[y*W+x] = Z_BG; continue; }
-
-      // Gold / warm hue (bib, patches, gold straps, waistband accent)
-      const isGold = (r - b) > 45 && r > 100 && g > 60 && b < 110;
-
-      // Dark (stripe panels, t-shirt body)
-      const isDark = r < 140 && g < 140 && b < 140;
-
-      if (isGold) { zoneMap[y*W+x] = Z_GOLD; continue; }
-
-      if (isDark) {
-        // Only mark as TSHIRT if it falls in the geometric t-shirt region
-        if (isTshirtRegion(x, y)) {
-          zoneMap[y*W+x] = Z_TSHIRT;
-        } else {
-          zoneMap[y*W+x] = Z_DARK;
-        }
-        continue;
-      }
-
-      // Ambiguous mid-tone → classify by warm bias
-      zoneMap[y*W+x] = ((r - b) > 15) ? Z_GOLD : Z_DARK;
-    }
+  // Is this pixel within the strap bounding column?
+  // Straps are the two narrow bands visible at the very top of the garment.
+  // They taper inward as y increases toward the bib.
+  function inStrapZone(x, y) {
+    // At y=30, left strap x≈434-438, right x≈573-577
+    // At y=48, left strap x≈383-484, right x≈523-629  (wider due to strap shape)
+    // We use a generous band that covers strap width and NO MORE
+    const t = Math.max(0, Math.min(1, (y - 30) / 165)); // 0 at y=30, 1 at y=195
+    // Left strap column: lerp x edges
+    const lL = Math.round(434 - t * (434 - F_BIB_X0));  // 434→395
+    const lR = Math.round(469 + t * (F_BIB_X0 - 469));  // 469→395 (collapses to bib edge)
+    // Right strap column
+    const rL = Math.round(539 + t * (F_BIB_X1 - 539));  // 539→625 (collapses to bib edge)
+    const rR = Math.round(577 + t * (F_BIB_X1 - 577));  // 577→625
+    if (x >= lL && x <= lR) return true;
+    if (x >= rL && x <= rR) return true;
+    return false;
   }
 
-  // ── PASS 2: outline detection (GOLD↔DARK boundaries + garment edge) ────
-  for (let y = 1; y < H - 1; y++) {
-    for (let x = 1; x < W - 1; x++) {
-      const z = zoneMap[y*W+x];
-      if (z === Z_BG || z === Z_TSHIRT) continue;
-
-      const nb = [
-        zoneMap[(y-1)*W+x],   zoneMap[(y+1)*W+x],
-        zoneMap[y*W+x-1],     zoneMap[y*W+x+1],
-        zoneMap[(y-1)*W+x-1], zoneMap[(y-1)*W+x+1],
-        zoneMap[(y+1)*W+x-1], zoneMap[(y+1)*W+x+1],
-      ];
-      const hasBG   = nb.includes(Z_BG) || nb.includes(Z_TSHIRT);
-      const hasOpp  = (z === Z_GOLD && nb.includes(Z_DARK)) ||
-                      (z === Z_DARK && nb.includes(Z_GOLD));
-      if (hasBG || hasOpp) zoneMap[y*W+x] = Z_OUTLINE;
-    }
-  }
-
-  // ── SECTION → FABRIC LOOKUP ──────────────────────────────────────────────
-  // The original sketch has gold=A-sections, dark=B-sections by default.
-  // But users can toggle any section to any fabric.
-  // We need to know: for a pixel at (x,y) classified as GOLD or DARK,
-  // which fabric should it use?
-  //
-  // Strategy: we derive two effective fabrics:
-  //   fabForGold(x,y) — fabric assigned to the gold-zone section at that location
-  //   fabForDark(x,y) — fabric assigned to the dark-zone section at that location
-  //
-  // We do this by mapping geometry to section IDs, same as the SECTIONS list.
-
-  function getSectionId(x, y, zone) {
+  function classifyPixel(x, y) {
     const isFront = x < HALF;
-    const rx = isFront ? x / HALF : (x - HALF) / HALF;  // 0..1 within half
-    const ry = y / H;                                     // 0..1
 
     if (isFront) {
-      if (zone === Z_GOLD) {
-        // Gold zones front: bib (top centre), waistband strip, patches, straps
-        if (ry < 0.14)                          return 'straps';      // top straps
-        if (ry >= 0.14 && ry < 0.32 && rx > 0.25 && rx < 0.75) return 'bib';
-        if (ry >= 0.30 && ry < 0.38)            return 'waistband';
-        if (ry >= 0.38 && ry < 0.65) {
-          // Upper trouser area gold patches
-          return rx < 0.50 ? 'left-thigh' : 'right-thigh';
-        }
-        if (ry >= 0.65) {
-          // Lower leg gold patches
-          if (ry > 0.85)                         return 'ankle-patch';
-          return rx < 0.50 ? 'knee-patch' : 'knee-patch';
-        }
-        return 'bib'; // fallback
-      } else {
-        // Dark zones front: trouser panels
-        if (ry < 0.38) return 'waistband'; // waistband dark edge
-        return rx < 0.50 ? 'left-trouser' : 'right-trouser';
+      if (!inSilhouette(x, y, 0, HALF)) return null;
+
+      // ── TOP SECTION (y < BIB_Y0=195) ──────────────────────────────────────
+      // Only straps exist here. Everything else (t-shirt body, sleeves) = white.
+      if (y < F_BIB_Y0) {
+        if (inStrapZone(x, y)) return 'straps';
+        return null; // t-shirt / outside straps → white
       }
+
+      // ── BIB (y=195-305) ───────────────────────────────────────────────────
+      if (y < F_BIB_Y1) {
+        if (x >= F_BIB_X0 && x <= F_BIB_X1) return 'bib';
+        return null; // sides of bib row = white
+      }
+
+      // ── WAISTBAND (y=305-350) ─────────────────────────────────────────────
+      if (y < F_WB_Y1) return 'waistband';
+
+      // ── TROUSERS (y >= 350) ───────────────────────────────────────────────
+      const pi=(y*W+x)*4;
+      const pr=orig[pi],pg=orig[pi+1],pb=orig[pi+2];
+      const isVividGold=(pr-pb)>80&&pr>140&&pg>90&&pb<90;
+      if (isVividGold) return 'knee-patch';
+      return x < F_CENTRE ? 'left-trouser' : 'right-trouser';
+
     } else {
-      // Back view
-      if (zone === Z_GOLD) {
-        if (ry < 0.14)  return 'straps';     // cross straps gold
-        if (ry >= 0.14 && ry < 0.32) return 'back-mid';
-        if (ry >= 0.30 && ry < 0.38) return 'waistband';
-        if (ry >= 0.38) {
-          // Back gold patches and centre panel
-          if (rx > 0.25 && rx < 0.75) return 'back-mid';
-          return 'back-knee';
-        }
-        return 'back-mid';
-      } else {
-        // Dark zones back: side panels
-        if (ry < 0.38) return 'waistband';
-        return 'back-sides';
+      // ── BACK VIEW ─────────────────────────────────────────────────────────
+      if (!inSilhouette(x, y, HALF, W)) return null;
+      const lx = x - HALF; // local x within back half
+
+      // ── BACK TOP (y < 215): cross-straps only, t-shirt = white ────────────
+      if (y < B_TSHIRT_Y1) {
+        const pi=(y*W+x)*4;
+        const pr=orig[pi],pg=orig[pi+1],pb=orig[pi+2];
+        const isVividGold=(pr-pb)>70&&pr>120&&pg>80;
+        return isVividGold ? 'straps' : null;
       }
+
+      // ── BACK BIB/YOKE (y=215-305) ─────────────────────────────────────────
+      if (y < B_BIB_Y1) return 'bib';
+
+      // ── BACK WAISTBAND (y=305-350) ────────────────────────────────────────
+      if (y < B_WB_Y1) return 'waistband';
+
+      // ── BACK TROUSERS (y >= 350) ──────────────────────────────────────────
+      const pi=(y*W+x)*4;
+      const pr=orig[pi],pg=orig[pi+1],pb=orig[pi+2];
+      const isVividGold=(pr-pb)>80&&pr>140&&pg>90&&pb<90;
+      // Back has two legs with a gap starting ~y=600
+      // Centre panel = back-mid, outer panels = back-sides
+      if (lx > 109 && lx < 396) {
+        // Within the main back garment shape
+        // Use the leg split gap data: gap at lx≈249-257
+        if (lx < 247 || lx > 259) {
+          if (isVividGold) return 'back-knee';
+          // Divide into back-mid vs back-sides by thirds
+          const garmentCentre = (109 + 396) / 2; // ≈252
+          const sideWidth = 60;
+          if (lx < 109 + sideWidth) return 'back-sides';       // left side strip
+          if (lx > 396 - sideWidth) return 'back-sides';       // right side strip
+          return 'back-mid';
+        }
+        return null; // gap between legs
+      }
+      return null;
     }
   }
 
-  // Build a fast lookup: sectionId → tileData (either tdA or tdB)
-  function tileForSection(sectionId) {
-    const s = SECTIONS.find(x => x.id === sectionId);
-    if (!s) return tileA.data; // fallback
-    return s.fab === 'B' ? tileB.data : tileA.data;
+  function classifyPixel(x, y) {
+    const isFront = x < HALF;
+
+    if (isFront) {
+      // Silhouette check with dilation to fill stripe texture gaps
+      if (!inSilhouette(x, y, 0, HALF)) return null;
+      // T-shirt: everything above y=120 → white
+      if (y < F_TSHIRT_Y1) return null;
+      // Straps: narrow columns flanking bib, from y=120 to y=210
+      if (y < 210 && x < F_STRAP_L_X1) return 'straps';
+      if (y < 210 && x > F_STRAP_R_X0) return 'straps';
+      // Bib: centre
+      if (y < F_WB_Y0) return 'bib';
+      // Waistband
+      if (y < F_WB_Y1) return 'waistband';
+      // Trousers — use vivid gold only for patches
+      const pi = (y*W+x)*4;
+      const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
+      const isVividGold = (pr-pb)>80 && pr>140 && pg>90 && pb<90;
+      if (isVividGold) return 'knee-patch';
+      return x < F_CENTRE ? 'left-trouser' : 'right-trouser';
+
+    } else {
+      if (!inSilhouette(x, y, HALF, W)) return null;
+      const lx = x - HALF;
+      // T-shirt / strap region y < 200
+      if (y < B_TSHIRT_Y1) {
+        const pi=(y*W+x)*4;
+        const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
+        return ((pr-pb)>70 && pr>120 && pg>80) ? 'straps' : null;
+      }
+      // Waistband
+      if (y < B_WB_Y1) return 'waistband';
+      // Back panels
+      const pi=(y*W+x)*4;
+      const pr=orig[pi], pg=orig[pi+1], pb=orig[pi+2];
+      const isVividGold=(pr-pb)>80 && pr>140 && pg>90 && pb<90;
+      if (lx > 120 && lx < 430) return 'back-mid';
+      return isVividGold ? 'back-knee' : 'back-sides';
+    }
   }
 
-  // ── PASS 3: render ───────────────────────────────────────────────────────
+  // ── STEP 3: OUTLINE DETECTION ─────────────────────────────────────────────
+  // After we know the section for each pixel, detect edges between
+  // different sections (or between garment and background) and draw them dark.
+  // We only need this for a clean flat-sketch look.
+  const sectionMap = new Array(W * H).fill(null);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++)
+      sectionMap[y * W + x] = classifyPixel(x, y);
+
+  const isOutline = new Uint8Array(W * H);
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const z = sectionMap[y * W + x];
+      if (!z) continue; // background/tshirt — no outline needed
+      // Check 4 neighbours
+      const neighbors = [
+        sectionMap[(y-1)*W+x], sectionMap[(y+1)*W+x],
+        sectionMap[y*W+x-1],   sectionMap[y*W+x+1],
+      ];
+      // Outline if any neighbour is null (background) or a different section
+      const atEdge = neighbors.some(n => n === null || n !== z);
+      if (atEdge) isOutline[y * W + x] = 1;
+    }
+  }
+
+  // ── STEP 4: RENDER ────────────────────────────────────────────────────────
+  function tileFor(sectionId) {
+    const s = SECTIONS.find(x => x.id === sectionId);
+    return (!s || s.fab === 'A') ? tileA : tileB;
+  }
+
   const result = new Uint8ClampedArray(orig.length);
   const CHUNK  = Math.floor(H / 20);
 
@@ -1158,25 +1195,19 @@ async function generateSketch() {
 
     for (let y = y0; y < y1; y++) {
       for (let x = 0; x < W; x++) {
-        const i = (y * W + x) * 4;
-        const z = zoneMap[y * W + x];
+        const i   = (y * W + x) * 4;
+        const sec = sectionMap[y * W + x];
 
-        if (z === Z_BG || z === Z_TSHIRT) {
-          // Background and t-shirt both → pure white
-          result[i] = 255; result[i+1] = 255; result[i+2] = 255; result[i+3] = 255;
-
-        } else if (z === Z_OUTLINE) {
-          // Seam line → dark
-          result[i] = 25; result[i+1] = 25; result[i+2] = 25; result[i+3] = 255;
-
+        if (!sec) {
+          // Background or t-shirt → pure white
+          result[i]=255; result[i+1]=255; result[i+2]=255; result[i+3]=255;
+        } else if (isOutline[y * W + x]) {
+          // Seam/outline → dark grey line
+          result[i]=30; result[i+1]=30; result[i+2]=30; result[i+3]=255;
         } else {
-          // GOLD or DARK → look up which fabric this section is assigned to
-          const secId = getSectionId(x, y, z);
-          const td    = tileForSection(secId);
-          result[i]   = td[i];
-          result[i+1] = td[i+1];
-          result[i+2] = td[i+2];
-          result[i+3] = 255;
+          // Pure fabric fill — zero blending, zero original bleed
+          const td = tileFor(sec);
+          result[i]=td[i]; result[i+1]=td[i+1]; result[i+2]=td[i+2]; result[i+3]=255;
         }
       }
     }
@@ -1190,7 +1221,7 @@ async function generateSketch() {
   ctx.putImageData(imgData, 0, 0);
   state.resultImageData = canvas.toDataURL('image/png');
 
-  overlay.classList.remove('visible');
+  document.getElementById('progressOverlay').classList.remove('visible');
   document.getElementById('generateLabel').textContent = '↺ Re-generate';
   document.getElementById('generateBtn').disabled = false;
   document.getElementById('downloadBtn').disabled = false;
@@ -1198,7 +1229,7 @@ async function generateSketch() {
   document.getElementById('canvasSubtitle').textContent = '— colourway preview';
   setStatus('ready', `Done · ${W}×${H}px`);
   zoomFit();
-  showToast('Sketch generated — toggle sections and Re-generate to update');
+  showToast('Done — toggle sections and Re-generate to update');
 }
 
 // ── Fabric tile helper ────────────────────────────────────────────────────
@@ -1336,6 +1367,57 @@ buildAssignTable();
 loadEmbeddedGarment();
 
 setStatus('', 'Ready — upload garment template and fabrics');
+
+// ── Mobile panel / bottom-sheet ──────────────────────────────────────────
+function isMobile() { return window.innerWidth <= 768; }
+
+function togglePanel() {
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sheetBackdrop');
+  const btn      = document.getElementById('panelToggleBtn');
+  const isOpen   = sidebar.classList.contains('panel-open');
+  if (isOpen) {
+    closePanel();
+  } else {
+    sidebar.classList.add('panel-open');
+    backdrop.classList.add('visible');
+    btn.textContent = '✕ Close';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closePanel() {
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sheetBackdrop');
+  const btn      = document.getElementById('panelToggleBtn');
+  sidebar.classList.remove('panel-open');
+  backdrop.classList.remove('visible');
+  btn.textContent = '⚙ Settings';
+  document.body.style.overflow = '';
+}
+
+// Close panel when generate is tapped on mobile (so canvas is visible)
+const origGenerate = window.generateSketch;
+document.getElementById('generateBtn').addEventListener('click', function() {
+  if (isMobile()) closePanel();
+});
+
+// Touch swipe-down to close panel
+(function() {
+  let startY = 0;
+  const sidebar = document.getElementById('sidebar');
+  sidebar.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  sidebar.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 60 && sidebar.scrollTop <= 0) closePanel();
+  }, { passive: true });
+})();
+
+// Handle orientation change / resize
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) closePanel();
+});
+
 </script>
 </body>
 </html>
