@@ -628,7 +628,7 @@ body {
 
         <!-- Fabric A -->
         <input type="file" accept="image/*" id="inputA" onchange="handleFabricUpload('A', this)" style="display:none">
-        <div class="fabric-slot" id="slotA" onclick="document.getElementById('inputA').click()">
+        <label for="inputA" class="fabric-slot" id="slotA" style="cursor:pointer;display:block">
           <div class="fabric-slot-header">
             <div class="fabric-letter letter-a">A</div>
             <div>
@@ -641,11 +641,11 @@ body {
             <div id="hintA" class="upload-hint">Click to upload · PNG, JPG</div>
             <div id="nameA" class="fabric-filename" style="display:none"></div>
           </div>
-        </div>
+        </label>
 
         <!-- Fabric B -->
         <input type="file" accept="image/*" id="inputB" onchange="handleFabricUpload('B', this)" style="display:none">
-        <div class="fabric-slot" id="slotB" onclick="document.getElementById('inputB').click()">
+        <label for="inputB" class="fabric-slot" id="slotB" style="cursor:pointer;display:block">
           <div class="fabric-slot-header">
             <div class="fabric-letter letter-b">B</div>
             <div>
@@ -658,7 +658,7 @@ body {
             <div id="hintB" class="upload-hint">Click to upload · PNG, JPG</div>
             <div id="nameB" class="fabric-filename" style="display:none"></div>
           </div>
-        </div>
+        </label>
 
       </div>
     </div>
@@ -817,76 +817,78 @@ const SECTIONS = [
 function buildAssignTable() {
   const tbody = document.getElementById('assignBody');
   let lastView = '';
+
   SECTIONS.forEach(s => {
+    // View heading row
     if (s.view !== lastView) {
       const hdr = document.createElement('tr');
-      hdr.innerHTML = `<td colspan="2" style="padding-top:0.6rem;padding-bottom:0.2rem;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);font-weight:500">${s.view} View</td>`;
+      const th = document.createElement('td');
+      th.colSpan = 2;
+      th.style.cssText = 'padding-top:0.6rem;padding-bottom:0.2rem;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);font-weight:500';
+      th.textContent = s.view + ' View';
+      hdr.appendChild(th);
       tbody.appendChild(hdr);
       lastView = s.view;
     }
 
     const tr = document.createElement('tr');
-    tr.dataset.sectionId = s.id;
 
-    // Name cell
+    // Name cell with dot
     const tdName = document.createElement('td');
     const dot = document.createElement('span');
-    dot.className = `section-dot dot-${s.fab.toLowerCase()}`;
-    dot.dataset.dotFor = s.id;
+    dot.className = 'section-dot dot-' + s.fab.toLowerCase();
+    dot.id = 'dot-' + s.id;
     tdName.appendChild(dot);
-    tdName.appendChild(document.createTextNode(' ' + s.label));
+    tdName.appendChild(document.createTextNode(' ' + s.label));
+    tr.appendChild(tdName);
 
-    // Toggle cell
+    // Toggle cell — two plain buttons, listeners attached directly
     const tdToggle = document.createElement('td');
     const wrap = document.createElement('div');
     wrap.className = 'fab-toggle';
 
     const btnA = document.createElement('button');
-    btnA.className = 'fab-btn' + (s.fab === 'A' ? ' active-a' : '');
+    btnA.type = 'button'; // prevent any form submission behaviour
     btnA.textContent = 'A';
-    btnA.dataset.sectionId = s.id;
-    btnA.dataset.fab = 'A';
+    btnA.id = 'btn-' + s.id + '-A';
+    btnA.className = 'fab-btn' + (s.fab === 'A' ? ' active-a' : '');
+    btnA.addEventListener('click', function(e) {
+      e.stopPropagation();
+      assignFab(s.id, 'A');
+    });
 
     const btnB = document.createElement('button');
-    btnB.className = 'fab-btn' + (s.fab === 'B' ? ' active-b' : '');
+    btnB.type = 'button';
     btnB.textContent = 'B';
-    btnB.dataset.sectionId = s.id;
-    btnB.dataset.fab = 'B';
+    btnB.id = 'btn-' + s.id + '-B';
+    btnB.className = 'fab-btn' + (s.fab === 'B' ? ' active-b' : '');
+    btnB.addEventListener('click', function(e) {
+      e.stopPropagation();
+      assignFab(s.id, 'B');
+    });
 
     wrap.appendChild(btnA);
     wrap.appendChild(btnB);
     tdToggle.appendChild(wrap);
-
-    tr.appendChild(tdName);
     tr.appendChild(tdToggle);
     tbody.appendChild(tr);
   });
-
-  // Single delegated listener on the tbody
-  tbody.addEventListener('click', function(e) {
-    const btn = e.target.closest('button.fab-btn');
-    if (!btn) return;
-    const id  = btn.dataset.sectionId;
-    const fab = btn.dataset.fab;
-    if (!id || !fab) return;
-    assignFab(id, fab, btn);
-  });
 }
 
-function assignFab(id, fab, btn) {
+function assignFab(id, fab) {
   const s = SECTIONS.find(x => x.id === id);
   if (!s) return;
   s.fab = fab;
 
-  // Update both buttons in the same toggle group
-  const tbody = document.getElementById('assignBody');
-  tbody.querySelectorAll(`button.fab-btn[data-section-id="${id}"]`).forEach(b => {
-    b.className = 'fab-btn' + (b.dataset.fab === fab ? ` active-${fab.toLowerCase()}` : '');
-  });
+  // Update button styles
+  const btnA = document.getElementById('btn-' + id + '-A');
+  const btnB = document.getElementById('btn-' + id + '-B');
+  if (btnA) btnA.className = 'fab-btn' + (fab === 'A' ? ' active-a' : '');
+  if (btnB) btnB.className = 'fab-btn' + (fab === 'B' ? ' active-b' : '');
 
   // Update dot
-  const dot = tbody.querySelector(`span[data-dot-for="${id}"]`);
-  if (dot) dot.className = `section-dot dot-${fab.toLowerCase()}`;
+  const dot = document.getElementById('dot-' + id);
+  if (dot) dot.className = 'section-dot dot-' + fab.toLowerCase();
 }
 
 // ── Fabric upload ─────────────────────────────────────────────────────────
@@ -945,14 +947,13 @@ function checkReady() {
   }
 }
 
-// ── Generate sketch ───────────────────────────────────────────────────────
+// ── Generate sketch ─────────────────────────────────────────────────────
 async function generateSketch() {
   if (!state.fabricA || !state.fabricB || !state.garmentImg) return;
 
-  setStatus('working', 'Rendering fabric map…');
+  setStatus('working', 'Rendering…');
   document.getElementById('generateLabel').textContent = '⟳ Rendering…';
   document.getElementById('generateBtn').disabled = true;
-
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('previewWrapper').style.display = 'block';
   const overlay = document.getElementById('progressOverlay');
@@ -960,141 +961,228 @@ async function generateSketch() {
   await sleep(30);
 
   const garment = state.garmentImg;
-  const W = garment.naturalWidth;
-  const H = garment.naturalHeight;
-  const HALF = Math.floor(W / 2);
+  const W = garment.naturalWidth;   // 1536
+  const H = garment.naturalHeight;  // 1024
+  const HALF = Math.floor(W / 2);   // 768  — front left, back right
 
-  // Get original pixels
+  // Draw garment to offscreen canvas to read pixels
   const canvas = document.getElementById('mainCanvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-
   const off = document.getElementById('offscreen');
   off.width = W; off.height = H;
   const offCtx = off.getContext('2d');
   offCtx.drawImage(garment, 0, 0);
-  const origData = offCtx.getImageData(0, 0, W, H);
-  const orig = origData.data;
+  const orig = offCtx.getImageData(0, 0, W, H).data;
 
-  // Build fabric tiles (pure, untransformed)
   const scale = parseInt(document.getElementById('fabricScale').value) / 100;
   const tileA = makeFabricTile(state.fabricA, W, H, scale);
   const tileB = makeFabricTile(state.fabricB, W, H, scale);
-  const tdA = tileA.data;
-  const tdB = tileB.data;
 
-  // ── Step 1: Build a garment-zone mask ──────────────────────────────────
-  // Classify every pixel into: BACKGROUND | TSHIRT | ZONE_A | ZONE_B | SEAM
-  // Zone A = original gold/warm areas  → Fabric A (plain)
-  // Zone B = original dark/stripe areas → Fabric B (stripe/print)
-  // SEAM = sharp luminance edge between two garment zones → dark outline
-  // TSHIRT = black areas belonging to the underlying t-shirt → keep black
+  // ── PIXEL CLASSIFIER ────────────────────────────────────────────────────
+  // The original flat sketch uses:
+  //   GOLD / WARM pixels  → garment fabric panels (Zone A originally)
+  //   DARK / BLACK pixels → either stripe panels OR the t-shirt underneath
+  //
+  // We identify the t-shirt region by GEOMETRY only:
+  //   Front: the black areas above/beside the bib that are NOT straps
+  //   Back:  the entire black torso area behind the cross-straps
+  //
+  // Everything else that is gold → GOLD zone
+  // Everything else that is dark → DARK zone
+  //
+  // Then at render time we look up SECTIONS[].fab for each named region
+  // so the toggle assignments are always respected.
 
-  const ZONE_BG     = 0;
-  const ZONE_TSHIRT = 1;
-  const ZONE_A      = 2;
-  const ZONE_B      = 3;
-  const ZONE_SEAM   = 4;
+  // ── ZONE CONSTANTS ───────────────────────────────────────────────────────
+  const Z_BG      = 0;  // white background → white
+  const Z_TSHIRT  = 1;  // t-shirt body     → white (removed)
+  const Z_GOLD    = 2;  // warm/gold pixel  → lookup fabric by section
+  const Z_DARK    = 3;  // dark/stripe px   → lookup fabric by section
+  const Z_OUTLINE = 4;  // seam edge        → dark line
 
   const zoneMap = new Uint8Array(W * H);
 
-  // T-shirt geometry (same as before)
-  function isTshirt(x, y) {
+  // ── T-SHIRT GEOMETRY ────────────────────────────────────────────────────
+  // The pinafore sits OVER the t-shirt. The t-shirt is visible:
+  //   Front: neck area (top centre), left sleeve, right sleeve
+  //   Back:  entire upper back body between the cross straps
+  //
+  // We mark any DARK pixel inside these geometry boxes as TSHIRT.
+  // Gold pixels are never t-shirt (they are bib/straps/waistband).
+
+  function isTshirtRegion(x, y) {
     if (x < HALF) {
-      if (y < 145 && x > HALF * 0.22 && x < HALF * 0.78) return true;
-      if (y > 45 && y < 295 && x > HALF * 0.14 && x < HALF * 0.37) return true;
-      if (y > 45 && y < 295 && x > HALF * 0.58 && x < HALF * 0.78) return true;
+      // Front — relative coords within left half
+      const rx = x / HALF;          // 0..1
+      const ry = y / H;             // 0..1
+      // Neck / collar strip across the top centre
+      if (ry < 0.14 && rx > 0.20 && rx < 0.80) return true;
+      // Left sleeve (viewer's right of image)
+      if (ry > 0.04 && ry < 0.30 && rx > 0.14 && rx < 0.38) return true;
+      // Right sleeve (viewer's left of image)
+      if (ry > 0.04 && ry < 0.30 && rx > 0.60 && rx < 0.80) return true;
     } else {
-      const lx = x - HALF;
-      if (y < 280 && lx > HALF * 0.14 && lx < HALF * 0.86) return true;
+      // Back — relative coords within right half
+      const rx = (x - HALF) / HALF;
+      const ry = y / H;
+      // Entire upper back is t-shirt; straps are gold so won't match DARK
+      if (ry < 0.30 && rx > 0.10 && rx < 0.90) return true;
     }
     return false;
   }
 
-  // First pass — classify each pixel
+  // ── PASS 1: classify every pixel ────────────────────────────────────────
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
       const r = orig[i], g = orig[i+1], b = orig[i+2];
 
-      // Background: near-white
-      if (r > 235 && g > 235 && b > 235) { zoneMap[y*W+x] = ZONE_BG; continue; }
+      // White / near-white background
+      if (r > 232 && g > 232 && b > 232) { zoneMap[y*W+x] = Z_BG; continue; }
 
-      const warmDiff = r - b;
-      const isGold = r > 110 && g > 65 && b < 100 && warmDiff > 50;
-      const isDark = r < 135 && g < 135 && b < 135;
+      // Gold / warm hue (bib, patches, gold straps, waistband accent)
+      const isGold = (r - b) > 45 && r > 100 && g > 60 && b < 110;
 
-      if (isTshirt(x, y) && isDark && !isGold) { zoneMap[y*W+x] = ZONE_TSHIRT; continue; }
-      if (isGold)  { zoneMap[y*W+x] = ZONE_A; continue; }
-      if (isDark)  { zoneMap[y*W+x] = ZONE_B; continue; }
+      // Dark (stripe panels, t-shirt body)
+      const isDark = r < 140 && g < 140 && b < 140;
 
-      // Ambiguous — assign based on warm bias
-      zoneMap[y*W+x] = (warmDiff > 20) ? ZONE_A : ZONE_B;
+      if (isGold) { zoneMap[y*W+x] = Z_GOLD; continue; }
+
+      if (isDark) {
+        // Only mark as TSHIRT if it falls in the geometric t-shirt region
+        if (isTshirtRegion(x, y)) {
+          zoneMap[y*W+x] = Z_TSHIRT;
+        } else {
+          zoneMap[y*W+x] = Z_DARK;
+        }
+        continue;
+      }
+
+      // Ambiguous mid-tone → classify by warm bias
+      zoneMap[y*W+x] = ((r - b) > 15) ? Z_GOLD : Z_DARK;
     }
   }
 
-  // Second pass — detect seam edges: garment pixels whose zone differs from a neighbour
-  // Only draw seams between A↔B zone transitions (actual panel boundaries)
+  // ── PASS 2: outline detection (GOLD↔DARK boundaries + garment edge) ────
   for (let y = 1; y < H - 1; y++) {
     for (let x = 1; x < W - 1; x++) {
       const z = zoneMap[y*W+x];
-      if (z === ZONE_BG || z === ZONE_TSHIRT) continue; // skip non-garment zones
-      const neighbors = [
-        zoneMap[(y-1)*W+x], zoneMap[(y+1)*W+x],
-        zoneMap[y*W+x-1],   zoneMap[y*W+x+1],
+      if (z === Z_BG || z === Z_TSHIRT) continue;
+
+      const nb = [
+        zoneMap[(y-1)*W+x],   zoneMap[(y+1)*W+x],
+        zoneMap[y*W+x-1],     zoneMap[y*W+x+1],
         zoneMap[(y-1)*W+x-1], zoneMap[(y-1)*W+x+1],
         zoneMap[(y+1)*W+x-1], zoneMap[(y+1)*W+x+1],
       ];
-      // Seam = this pixel is zone A or B, and a neighbour is the opposite zone
-      const oppositeZone = z === ZONE_A ? ZONE_B : (z === ZONE_B ? ZONE_A : -1);
-      if (oppositeZone !== -1 && neighbors.includes(oppositeZone)) {
-        zoneMap[y*W+x] = ZONE_SEAM;
+      const hasBG   = nb.includes(Z_BG) || nb.includes(Z_TSHIRT);
+      const hasOpp  = (z === Z_GOLD && nb.includes(Z_DARK)) ||
+                      (z === Z_DARK && nb.includes(Z_GOLD));
+      if (hasBG || hasOpp) zoneMap[y*W+x] = Z_OUTLINE;
+    }
+  }
+
+  // ── SECTION → FABRIC LOOKUP ──────────────────────────────────────────────
+  // The original sketch has gold=A-sections, dark=B-sections by default.
+  // But users can toggle any section to any fabric.
+  // We need to know: for a pixel at (x,y) classified as GOLD or DARK,
+  // which fabric should it use?
+  //
+  // Strategy: we derive two effective fabrics:
+  //   fabForGold(x,y) — fabric assigned to the gold-zone section at that location
+  //   fabForDark(x,y) — fabric assigned to the dark-zone section at that location
+  //
+  // We do this by mapping geometry to section IDs, same as the SECTIONS list.
+
+  function getSectionId(x, y, zone) {
+    const isFront = x < HALF;
+    const rx = isFront ? x / HALF : (x - HALF) / HALF;  // 0..1 within half
+    const ry = y / H;                                     // 0..1
+
+    if (isFront) {
+      if (zone === Z_GOLD) {
+        // Gold zones front: bib (top centre), waistband strip, patches, straps
+        if (ry < 0.14)                          return 'straps';      // top straps
+        if (ry >= 0.14 && ry < 0.32 && rx > 0.25 && rx < 0.75) return 'bib';
+        if (ry >= 0.30 && ry < 0.38)            return 'waistband';
+        if (ry >= 0.38 && ry < 0.65) {
+          // Upper trouser area gold patches
+          return rx < 0.50 ? 'left-thigh' : 'right-thigh';
+        }
+        if (ry >= 0.65) {
+          // Lower leg gold patches
+          if (ry > 0.85)                         return 'ankle-patch';
+          return rx < 0.50 ? 'knee-patch' : 'knee-patch';
+        }
+        return 'bib'; // fallback
+      } else {
+        // Dark zones front: trouser panels
+        if (ry < 0.38) return 'waistband'; // waistband dark edge
+        return rx < 0.50 ? 'left-trouser' : 'right-trouser';
       }
-      // Seam at garment/background boundary (but not where tshirt was)
-      if (neighbors.includes(ZONE_BG) && z !== ZONE_TSHIRT) {
-        zoneMap[y*W+x] = ZONE_SEAM;
+    } else {
+      // Back view
+      if (zone === Z_GOLD) {
+        if (ry < 0.14)  return 'straps';     // cross straps gold
+        if (ry >= 0.14 && ry < 0.32) return 'back-mid';
+        if (ry >= 0.30 && ry < 0.38) return 'waistband';
+        if (ry >= 0.38) {
+          // Back gold patches and centre panel
+          if (rx > 0.25 && rx < 0.75) return 'back-mid';
+          return 'back-knee';
+        }
+        return 'back-mid';
+      } else {
+        // Dark zones back: side panels
+        if (ry < 0.38) return 'waistband';
+        return 'back-sides';
       }
     }
   }
 
-  // Third pass — render: pure fabric, no bleed-through
+  // Build a fast lookup: sectionId → tileData (either tdA or tdB)
+  function tileForSection(sectionId) {
+    const s = SECTIONS.find(x => x.id === sectionId);
+    if (!s) return tileA.data; // fallback
+    return s.fab === 'B' ? tileB.data : tileA.data;
+  }
+
+  // ── PASS 3: render ───────────────────────────────────────────────────────
   const result = new Uint8ClampedArray(orig.length);
-  const SEAM_COLOR = 30; // near-black seam lines
-  const CHUNK = Math.floor(H / 20);
+  const CHUNK  = Math.floor(H / 20);
 
   for (let chunk = 0; chunk < 20; chunk++) {
     const y0 = chunk * CHUNK;
-    const y1 = Math.min(H, (chunk+1) * CHUNK);
+    const y1 = Math.min(H, (chunk + 1) * CHUNK);
 
     for (let y = y0; y < y1; y++) {
       for (let x = 0; x < W; x++) {
         const i = (y * W + x) * 4;
-        const z = zoneMap[y*W+x];
+        const z = zoneMap[y * W + x];
 
-        if (z === ZONE_BG) {
+        if (z === Z_BG || z === Z_TSHIRT) {
+          // Background and t-shirt both → pure white
           result[i] = 255; result[i+1] = 255; result[i+2] = 255; result[i+3] = 255;
 
-        } else if (z === ZONE_TSHIRT) {
-          // T-shirt removed — render as white background
-          result[i] = 255; result[i+1] = 255; result[i+2] = 255; result[i+3] = 255;
+        } else if (z === Z_OUTLINE) {
+          // Seam line → dark
+          result[i] = 25; result[i+1] = 25; result[i+2] = 25; result[i+3] = 255;
 
-        } else if (z === ZONE_SEAM) {
-          // Clean dark outline — no fabric bleeding into seam
-          result[i] = SEAM_COLOR; result[i+1] = SEAM_COLOR; result[i+2] = SEAM_COLOR; result[i+3] = 255;
-
-        } else if (z === ZONE_A) {
-          // ── Pure Fabric A — straight tile pixel, zero original bleed ──
-          result[i] = tdA[i]; result[i+1] = tdA[i+1]; result[i+2] = tdA[i+2]; result[i+3] = 255;
-
-        } else if (z === ZONE_B) {
-          // ── Pure Fabric B — straight tile pixel, zero original bleed ──
-          result[i] = tdB[i]; result[i+1] = tdB[i+1]; result[i+2] = tdB[i+2]; result[i+3] = 255;
+        } else {
+          // GOLD or DARK → look up which fabric this section is assigned to
+          const secId = getSectionId(x, y, z);
+          const td    = tileForSection(secId);
+          result[i]   = td[i];
+          result[i+1] = td[i+1];
+          result[i+2] = td[i+2];
+          result[i+3] = 255;
         }
       }
     }
 
     document.getElementById('progressFill').style.width =
-      Math.round(((chunk+1)/20)*100) + '%';
+      Math.round(((chunk + 1) / 20) * 100) + '%';
     await sleep(0);
   }
 
@@ -1110,7 +1198,7 @@ async function generateSketch() {
   document.getElementById('canvasSubtitle').textContent = '— colourway preview';
   setStatus('ready', `Done · ${W}×${H}px`);
   zoomFit();
-  showToast('Sketch generated successfully');
+  showToast('Sketch generated — toggle sections and Re-generate to update');
 }
 
 // ── Fabric tile helper ────────────────────────────────────────────────────
@@ -1118,13 +1206,11 @@ function makeFabricTile(img, W, H, scale) {
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  const fw = Math.max(10, Math.round(img.naturalWidth * scale));
+  const fw = Math.max(10, Math.round(img.naturalWidth  * scale));
   const fh = Math.max(10, Math.round(img.naturalHeight * scale));
-  for (let y = 0; y < H; y += fh) {
-    for (let x = 0; x < W; x += fw) {
-      ctx.drawImage(img, x, y, fw, fh);
-    }
-  }
+  for (let ty = 0; ty < H; ty += fh)
+    for (let tx = 0; tx < W; tx += fw)
+      ctx.drawImage(img, tx, ty, fw, fh);
   return ctx.getImageData(0, 0, W, H);
 }
 
